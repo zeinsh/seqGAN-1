@@ -13,14 +13,14 @@ import discriminator
 import helpers
 
 
-CUDA = False
-VOCAB_SIZE = 5000
-MAX_SEQ_LEN = 20
+CUDA = True
+VOCAB_SIZE = 15000
+MAX_SEQ_LEN = 40
 START_LETTER = 0
 BATCH_SIZE = 32
-MLE_TRAIN_EPOCHS = 100
-ADV_TRAIN_EPOCHS = 50
-POS_NEG_SAMPLES = 10000
+MLE_TRAIN_EPOCHS = 10
+ADV_TRAIN_EPOCHS = 5
+POS_NEG_SAMPLES = 100000
 
 GEN_EMBEDDING_DIM = 32
 GEN_HIDDEN_DIM = 32
@@ -61,8 +61,8 @@ def train_generator_MLE(gen, gen_opt, oracle, real_data_samples, epochs):
         total_loss = total_loss / ceil(POS_NEG_SAMPLES / float(BATCH_SIZE)) / MAX_SEQ_LEN
 
         # sample from generator and compute oracle NLL
-        oracle_loss = helpers.batchwise_oracle_nll(gen, oracle, POS_NEG_SAMPLES, BATCH_SIZE, MAX_SEQ_LEN,
-                                                   start_letter=START_LETTER, gpu=CUDA)
+        oracle_loss = -1 #helpers.batchwise_oracle_nll(gen, oracle, POS_NEG_SAMPLES, BATCH_SIZE, MAX_SEQ_LEN,
+        #                                           start_letter=START_LETTER, gpu=CUDA)
 
         print(' average_train_NLL = %.4f, oracle_sample_NLL = %.4f' % (total_loss, oracle_loss))
 
@@ -84,8 +84,8 @@ def train_generator_PG(gen, gen_opt, oracle, dis, num_batches):
         gen_opt.step()
 
     # sample from generator and compute oracle NLL
-    oracle_loss = helpers.batchwise_oracle_nll(gen, oracle, POS_NEG_SAMPLES, BATCH_SIZE, MAX_SEQ_LEN,
-                                                   start_letter=START_LETTER, gpu=CUDA)
+    oracle_loss = -1#helpers.batchwise_oracle_nll(gen, oracle, POS_NEG_SAMPLES, BATCH_SIZE, MAX_SEQ_LEN,
+                   #                                start_letter=START_LETTER, gpu=CUDA)
 
     print(' oracle_sample_NLL = %.4f' % oracle_loss)
 
@@ -169,8 +169,8 @@ if __name__ == '__main__':
 
     # ADVERSARIAL TRAINING
     print('\nStarting Adversarial Training...')
-    oracle_loss = helpers.batchwise_oracle_nll(gen, oracle, POS_NEG_SAMPLES, BATCH_SIZE, MAX_SEQ_LEN,
-                                               start_letter=START_LETTER, gpu=CUDA)
+    oracle_loss = -1 #helpers.batchwise_oracle_nll(gen, oracle, POS_NEG_SAMPLES, BATCH_SIZE, MAX_SEQ_LEN,
+    #                                           start_letter=START_LETTER, gpu=CUDA)
     print('\nInitial Oracle Sample Loss : %.4f' % oracle_loss)
 
     for epoch in range(ADV_TRAIN_EPOCHS):
