@@ -19,6 +19,12 @@ class Generator(nn.Module):
         self.gpu = gpu
 
         self.embeddings = nn.Embedding(vocab_size, embedding_dim)
+        self.word_dropout_rate = 0 # word_dropout
+        self.embedding_dropout = nn.Dropout(p=0.5) #embedding_dropout) 
+
+        self.sos_idx=0 
+        self.pad_idx=1
+
         self.gru = nn.GRU(embedding_dim, hidden_dim)
         self.gru2out = nn.Linear(hidden_dim, vocab_size)
 
@@ -42,6 +48,17 @@ class Generator(nn.Module):
         """
         # input dim                                             # batch_size
         emb = self.embeddings(inp)                              # batch_size x embedding_dim
+        # decoder input
+        if self.word_dropout_rate > 0:
+        #    # randomly replace decoder input with <unk>
+            prob = torch.rand(inp.size())
+            if torch.cuda.is_available():
+                prob=prob.cuda()
+            prob[(inp.data - self.sos_idx) * (inp.data - self.pad_idx) == 0] = 1 # don't include <start> and <pad>
+            decoder_input_sequence = inp.clone()
+            decoder_input_sequence[prob < self.word_dropout_rate] = self.unk_idx
+            emb = self.embedding(decoder_input_sequence)
+        emb = self.embedding_dropout(emb)
         emb = emb.view(1, -1, self.embedding_dim)               # 1 x batch_size x embedding_dim
         out, hidden = self.gru(emb, hidden)                     # 1 x batch_size x hidden_dim (out)
         out = self.gru2out(out.view(-1, self.hidden_dim))       # batch_size x vocab_size
